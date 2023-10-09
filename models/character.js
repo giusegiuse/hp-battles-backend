@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const validator = require('validator');
 
 const charactersSchema = new mongoose.Schema({
   name: {
@@ -85,6 +84,9 @@ const charactersSchema = new mongoose.Schema({
 
 charactersSchema.set('toJSON', { virtuals: true });
 charactersSchema.set('toObject', { getters: true });
+
+//Indice per migliorare le prestazioni delle ricerche che utilizzano il cost come parametro (diminuisce il numero di documenti analizzati)
+charactersSchema.index({ cost: 1 });
 
 charactersSchema.virtual('costType').get(function () {
   if (this.cost < 80) return 'low';

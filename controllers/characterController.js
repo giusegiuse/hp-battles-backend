@@ -1,78 +1,12 @@
 const Character = require('../models/character');
-const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
+const factory = require('../controllers/handlerFactory');
 
-getAllCharacters = catchAsync(async (req, res, next) => {
-  let queryObj = { ...req.query };
-  const excludeFields = ['page', 'sort', 'limit', 'fields'];
-  excludeFields.forEach((el) => delete queryObj[el]);
-
-  const features = new APIFeatures(Character.find(), req.query)
-    .filter()
-    .sort()
-    .limitFileds()
-    .paginate();
-  const characters = await features.query;
-
-  res.status(200).json({
-    status: 'success',
-    results: characters.length,
-    data: {
-      characters,
-    },
-  });
-});
-
-getCharacter = catchAsync(async (req, res, next) => {
-  const character = await Character.findById(req.params.id);
-  if (!character) {
-    return next(new AppError('Nessun personaggio trovato con questo id', 404));
-  }
-  res.status(200).json({
-    status: 'success',
-    data: {
-      character,
-    },
-  });
-});
-
-createCharacter = catchAsync(async (req, res, next) => {
-  const newCharacter = await Character.create(req.body);
-  res.status(201).json({
-    status: 'success',
-    data: {
-      character: newCharacter,
-    },
-  });
-});
-
-updateCharacter = catchAsync(async (req, res, next) => {
-  const character = await Character.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-  if (!character) {
-    return next(new AppError('Nessun personaggio trovato con questo id', 404));
-  }
-  res.status(201).json({
-    status: 'success',
-    data: {
-      character,
-    },
-  });
-});
-
-deleteCharacter = catchAsync(async (req, res, next) => {
-  const character = await Character.findByIdAndDelete(req.params.id);
-  if (!character) {
-    return next(new AppError('Nessun personaggio trovato con questo id', 404));
-  }
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+getAllCharacters = factory.getAll(Character);
+getCharacter = factory.getOne(Character);
+createCharacter = factory.createOne(Character);
+updateCharacter = factory.updateOne(Character);
+deleteCharacter = factory.deleteOne(Character);
 
 aliasTopCharacters = async (req, res, next) => {
   req.query.limit = '3';

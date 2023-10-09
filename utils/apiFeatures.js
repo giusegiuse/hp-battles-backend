@@ -29,13 +29,13 @@ class APIFeatures {
     return this;
   }
 
-  limitFileds() {
+  limitFields() {
     if (this.queryString.fields) {
       const fields = this.queryString.fields.split(',').join(' ');
       this.query = this.query.select(fields);
     } else {
       //Eslcudiamo il campo __v del documento grazie al segno - (è un campo che aggiunge Mongodb ma che a noi non serve)
-      //query = query.select('-__v');
+      this.query = this.query.select('-__v');
     }
     return this;
   }

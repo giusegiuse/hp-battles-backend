@@ -3,10 +3,15 @@ const router = express.Router();
 const characterController = require('../controllers/characterController');
 const authController = require('./../controllers/authController');
 
+router.use(authController.protect);
+
 router
   .route('/')
-  .get(authController.protect, characterController.getAllCharacters)
-  .post(authController.protect, characterController.createCharacter);
+  .get(characterController.getAllCharacters)
+  .post(
+    authController.restrictTo('admin'),
+    characterController.createCharacter,
+  );
 
 router
   .route('/top-strength')
