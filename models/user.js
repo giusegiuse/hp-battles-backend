@@ -53,7 +53,27 @@ const usersSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
-  photo: String,
+  photo: {
+    type: String,
+    default: 'default.jpg',
+  },
+  money: {
+    type: Number,
+    default: 300,
+  },
+  challengesQuantity: {
+    type: Number,
+    default: 0,
+  },
+  victories: {
+    type: Number,
+    default: 0,
+  },
+  avgVictories: {
+    type: Number,
+    default: null,
+    set: (value) => Math.round(value),
+  },
   decks: [
     {
       name: String,

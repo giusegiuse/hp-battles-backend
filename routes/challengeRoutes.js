@@ -26,7 +26,7 @@ router
     challengeController.deleteChallenge,
   )
   .patch(
-    authController.restrictTo('admin'),
+    authController.restrictTo('user', 'admin'),
     challengeController.updateChallenge,
   );
 

@@ -3,7 +3,7 @@ const User = require('./../models/user');
 const catchAsync = require('../utils/catchAsync');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/appError');
-const sendEmail = require('../utils/emailSender');
+const Email = require('../utils/emailSender');
 const crypto = require('crypto');
 const cookieOptions = {
   expires: new Date(
@@ -47,6 +47,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     role: req.body.role,
     decks: req.body.decks,
   });
+  const url = `${req.protocol}://${req.get('host')}/me`;
+  await new Email(newUser, url).sendWelcome();
   createSendToken(newUser, 201, res);
 });
 
@@ -68,6 +70,14 @@ exports.login = catchAsync(async (req, res, next) => {
 
   //3) se tutto è ok inviamo il token al client
   createSendToken(user, 200, res);
+});
+
+exports.logout = catchAsync(async (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -111,7 +121,34 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   //GRANT ACCESS TO PROTECTED ROUTE
   req.user = currentUser;
+  next();
+});
 
+//Only for rendered pages, no errors!
+exports.isLoggedIn = catchAsync(async (req, res, next) => {
+  if (req.cookies.jwt) {
+    //1) verify token
+    const decoded = await promisify(jwt.verify)(
+      req.cookies.jwt,
+      process.env.JWT_SECRET,
+    );
+
+    //2) Check if user still exists
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      return next(
+        new AppError('Il token di questo utente non esiste più', 401),
+      );
+    }
+
+    // 4) Check if user changed password after the token was issued
+    if (await currentUser.changedPasswordAfter(decoded.iat)) {
+      return next();
+    }
+    //there is a logged in user
+    res.locals.user = currentUser;
+    next();
+  }
   next();
 });
 
@@ -141,22 +178,18 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   //validateBeforeSave => disattiverà tutti i validatori dello schema
   await user.save({ validateBeforeSave: false });
 
-  //3 Send it to user's email
-  const resetURL = `${req.protocol}://${req.get(
-    'host',
-  )}/api/users/resetPassword/${resetToken}`;
-
-  const message = `Password dimenticata? Richiedina una nuova a: ${resetURL}.\n  se non hai dimenticato la password, 
-  ignora la richiesta`;
-
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Reset password',
-      message: message,
-    });
+    //3 Send it to user's email
+    const resetURL = `${req.protocol}://${req.get(
+      'host',
+    )}/api/users/resetPassword/${resetToken}`;
 
-    createSendToken(user, 200, res);
+    await new Email(user, resetURL).sendPasswordReset();
+
+    res.status(200).json({
+      status: 'success',
+      message: "Token inviato all'email",
+    });
   } catch (err) {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;

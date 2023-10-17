@@ -47,7 +47,7 @@ const charactersSchema = new mongoose.Schema({
       type: Number,
     },
   },
-  image: String,
+  image: [String],
   cost: {
     type: Number,
     required: true,
