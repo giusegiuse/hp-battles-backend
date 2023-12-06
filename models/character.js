@@ -46,6 +46,9 @@ const charactersSchema = new mongoose.Schema({
     duration: {
       type: Number,
     },
+    description: {
+      type: String,
+    },
   },
   image: [String],
   cost: {

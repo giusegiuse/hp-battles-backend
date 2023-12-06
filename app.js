@@ -1,11 +1,4 @@
-const express = require('express');
 const mongoose = require('mongoose').default;
-const AppError = require('./utils/appError');
-const globalErrorHandler = require('./controllers/errorController');
-require('dotenv').config();
-const characterRouter = require('./routes/characterRoutes');
-const userRoutes = require('./routes/userRoutes');
-const challengeRoutes = require('./routes/challengeRoutes');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
@@ -13,10 +6,40 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
+
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./controllers/errorController');
+const characterRouter = require('./routes/characterRoutes');
+const userRoutes = require('./routes/userRoutes');
+const challengeRoutes = require('./routes/challengeRoutes');
+const cors = require('cors');
+const express = require('express');
 
 const app = express();
 
+app.enable('trust proxy');
+app.set('trust proxy', 1);
+
+require('dotenv').config();
+
 // 1) GLOBAL MIDDLEWARES
+// Implement CORS si può usare anche come middleware nelle rotte
+// work only with simple request: get and post request
+const corsOptions = {
+  origin: 'http://localhost:4200',
+  credentials: false,
+  optionSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+// Access-Control-Allow-Origin
+// BE: api.sito.com, FE: sito.com
+
+app.options('*', cors());
+// per le richieste con preflight (patch, update, delete)
+
+//app.options('/api/v1/character/:id', cors());
+
 //Set security HTTP headers
 app.use(helmet());
 
@@ -50,7 +73,7 @@ mongoose
   });
 
 app.get('/', (req, res) => {
-  res.send('ciao');
+  res.send('HP Battles');
 });
 
 // Body parser, reading data from body into req.body
@@ -78,6 +101,8 @@ app.use(
 
 app.use(express.static(`${__dirname}/public`));
 
+app.use(compression());
+
 //Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
@@ -89,7 +114,7 @@ app.use((req, res, next) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/challenge', challengeRoutes);
-app.use('/api', characterRouter);
+app.use('/api/character', characterRouter);
 
 app.all('*', (req, res, next) => {
   next(

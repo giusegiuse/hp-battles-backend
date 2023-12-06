@@ -1,6 +1,7 @@
 const Character = require('../models/character');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('../controllers/handlerFactory');
+const cache = require('../services/cache');
 
 getAllCharacters = factory.getAll(Character);
 getCharacter = factory.getOne(Character);
@@ -40,9 +41,15 @@ getCharactersStats = catchAsync(async (req, res, next) => {
       $sort: { avgCost: -1 },
     },
   ]);
+
+  const cachedStats = await cacheService.handleQuery({
+    query: statsQuery,
+    key: 'stats',
+  });
+
   res.status(200).json({
     status: 'success',
-    data: stats,
+    data: cachedStats,
   });
 });
 

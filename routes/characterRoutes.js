@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const characterController = require('../controllers/characterController');
 const authController = require('./../controllers/authController');
+const cleanCache = require('../controllers/cacheController');
 
-router.use(authController.protect);
+//router.use(authController.protect);
 
 router
   .route('/')
@@ -30,11 +31,14 @@ router
   .get(characterController.getCharacter)
   .patch(
     authController.restrictTo('admin'),
+    cleanCache,
     characterController.updateCharacter,
   )
   .delete(
     authController.protect,
     authController.restrictTo('admin'),
+    cleanCache,
     characterController.deleteCharacter,
   );
+
 module.exports = router;

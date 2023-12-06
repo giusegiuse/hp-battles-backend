@@ -6,7 +6,7 @@ const AppError = require('../utils/appError');
 const Email = require('../utils/emailSender');
 const crypto = require('crypto');
 const cookieOptions = {
-  expires: new Date(
+  expiresIn: new Date(
     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
   ),
   //specificando httponly a true il browser non potrà modificare in alcun modo il cookie.

@@ -47,7 +47,6 @@ challengesSchema.set('toJSON', { virtuals: true });
 challengesSchema.set('toObject', { getters: true });
 
 challengesSchema.statics.calculateWinPercentage = async function (userIds) {
-  console.log(userIds);
   for (const userId of userIds) {
     const stats = await this.aggregate([
       {

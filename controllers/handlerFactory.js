@@ -62,6 +62,8 @@ exports.getOne = (Model, populateOptions) =>
 
 exports.getAll = (Model) =>
   catchAsync(async (req, res, next) => {
+    console.log('df' + JSON.stringify(req.query));
+
     let doc;
     //TO allow for nested GET players on Challenge (hack)
     let filter = {};
@@ -71,7 +73,10 @@ exports.getAll = (Model) =>
     const excludeFields = ['page', 'sort', 'limit', 'fields'];
     excludeFields.forEach((el) => delete queryObj[el]);
     if (Object.keys(req.query).length !== 0) {
-      const features = new APIFeatures(Model.find(filter), req.query)
+      const features = new APIFeatures(
+        Model.find(filter).cache('dfgd'),
+        req.query,
+      )
         .filter()
         .sort()
         .limitFields()
