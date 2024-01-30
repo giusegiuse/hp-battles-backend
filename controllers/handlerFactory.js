@@ -33,6 +33,7 @@ exports.updateOne = (Model) =>
 
 exports.createOne = (Model) =>
   catchAsync(async (req, res, next) => {
+    console.log(req.body);
     const doc = await Model.create(req.body);
     res.status(200).json({
       status: 'success',
@@ -44,7 +45,10 @@ exports.createOne = (Model) =>
 
 exports.getOne = (Model, populateOptions) =>
   catchAsync(async (req, res, next) => {
-    let query = Model.findById(req.params.id);
+    let query;
+    if (req.params.id) query = Model.findById(req.params.id);
+    else if (req.body.id) query = Model.findById(req.body.id);
+
     if (populateOptions) query = query.populate(populateOptions);
     const doc = await query;
 
@@ -62,8 +66,6 @@ exports.getOne = (Model, populateOptions) =>
 
 exports.getAll = (Model) =>
   catchAsync(async (req, res, next) => {
-    console.log('df' + JSON.stringify(req.query));
-
     let doc;
     //TO allow for nested GET players on Challenge (hack)
     let filter = {};

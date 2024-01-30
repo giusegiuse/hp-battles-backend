@@ -13,6 +13,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const characterRouter = require('./routes/characterRoutes');
 const userRoutes = require('./routes/userRoutes');
 const challengeRoutes = require('./routes/challengeRoutes');
+const deckRoutes = require('./routes/deckRoutes');
 const cors = require('cors');
 const express = require('express');
 
@@ -38,8 +39,6 @@ app.use(cors(corsOptions));
 app.options('*', cors());
 // per le richieste con preflight (patch, update, delete)
 
-//app.options('/api/v1/character/:id', cors());
-
 //Set security HTTP headers
 app.use(helmet());
 
@@ -50,10 +49,10 @@ if (process.env.NODE_ENV === 'development') {
 
 //Limit requests from same API
 const limiter = rateLimit({
-  max: 300,
+  max: 900,
   windowMs: 60 * 60 * 1000,
   message: 'Too many request from this IP, please try again in an hour',
-  // 100 richieste da uno stesso ip nel corso di un'ora
+  // 900 richieste da uno stesso ip nel corso di un'ora
 });
 //attiviamo il limiter solo alle rotte delle api
 app.use('/api', limiter);
@@ -115,6 +114,7 @@ app.use((req, res, next) => {
 app.use('/api/users', userRoutes);
 app.use('/api/challenge', challengeRoutes);
 app.use('/api/character', characterRouter);
+app.use('/api/deck', deckRoutes);
 
 app.all('*', (req, res, next) => {
   next(

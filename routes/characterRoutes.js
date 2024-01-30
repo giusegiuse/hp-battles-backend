@@ -9,10 +9,9 @@ const cleanCache = require('../controllers/cacheController');
 router
   .route('/')
   .get(characterController.getAllCharacters)
-  .post(
-    authController.restrictTo('admin'),
-    characterController.createCharacter,
-  );
+  .post(characterController.createCharacter);
+
+router.route('/select-character').get(characterController.getCharacter);
 
 router
   .route('/top-strength')

@@ -8,6 +8,7 @@ const router = express.Router();
 //Middleware => per questa rotta  /:userId/challenge utilizza il challengeRouter
 router.use('/:id/challenges', challengeRouter);
 
+//add middleware to check captcha validity
 router.post('/signup', authController.signup);
 router.post('/create', userController.createUser);
 router.post('/login', authController.login);
@@ -29,7 +30,7 @@ router.patch(
 );
 router.delete('/deleteMe', userController.deleteMe);
 
-router.use(authController.restrictTo('admin'));
+//router.use(authController.restrictTo('admin'));
 
 router
   .route('/:id')

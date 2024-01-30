@@ -4,6 +4,34 @@ const server = app.listen(port, () => {
   console.log('app listen port 3000');
 });
 
+const io = require('socket.io')(server, {
+  cors: {
+    origins: ['*'],
+  },
+});
+
+//app.options('/api/v1/character/:id', cors());
+
+let onlineUsers = {};
+
+io.on('connection', (socket) => {
+  const socketId = socket.id;
+
+  socket.on('setId', (id) => {
+    console.log('setId', id);
+    onlineUsers[socketId] = id;
+    io.emit('updateOnlineUsers', Object.values(onlineUsers));
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Utente disconnesso:', socket.id);
+    delete onlineUsers[socketId];
+    io.emit('updateOnlineUsers', Object.values(onlineUsers));
+    // Rimuovi l'utente dalla lista degli utenti online
+    // E quindi emetti un evento per aggiornare l'elenco degli utenti online
+  });
+});
+
 //TODO verificare perchè questi due handler non funzionano, forse non vanno inseriti qui
 //per gestire tutte le eccezioni che non sono state gestite dal nostro codice
 process.on('unhandledRejection', (err) => {

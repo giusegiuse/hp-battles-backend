@@ -2,18 +2,25 @@ const mongoose = require('mongoose');
 const User = require('./user');
 
 const challengesSchema = new mongoose.Schema({
-  playerChallengers: [
-    {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User',
-      required: [true, 'Challenge must required a player challenger'],
+  playerChallengers: {
+    type: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+        required: [true, 'Challenge must required a player challenger'],
+      },
+    ],
+    validate: {
+      validator: function (value) {
+        return value.length <= 2;
+      },
+      message: 'Player challengers must be at most 2.',
     },
-  ],
+  },
   challengerDecks: [
     {
       type: mongoose.Schema.ObjectId,
       ref: 'Deck',
-      required: [true, 'Challenge must required a deck challenger'],
     },
   ],
   status: {
