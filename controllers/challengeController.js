@@ -22,15 +22,58 @@ exports.createChallenge = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: 'Challenge creata',
+    challengeId: req.body.challenge.challengeId,
   });
 });
 
+exports.checkInProgressChallenge = catchAsync(async (req, res, next) => {
+  const isChallengeInProgress = await checkInProgressChallenge(req.params.id);
+  if (isChallengeInProgress) {
+    return sendChallengeInProgressError(res);
+  }
+});
+
 exports.createOnePlayerChallenge = catchAsync(async (req, res, next) => {
-  await Challenge.create({
+  const isChallengeInProgress = await checkInProgressChallenge(
+    req.body.playerOne,
+  );
+  if (isChallengeInProgress) {
+    return sendChallengeInProgressError(res);
+  }
+
+  const newChallenge = await Challenge.create({
     playerChallengers: [req.body.playerOne, req.body.playerTwo],
   });
   res.status(200).json({
     status: 'success',
     message: 'Challenge creata',
+    challengeId: newChallenge._id,
   });
 });
+
+exports.deleteAllInProgressChallenges = catchAsync(async (req, res, next) => {
+  const userId = req.body.userId;
+  await Challenge.deleteMany({
+    status: 'in_progress',
+    playerChallengers: userId,
+  });
+  res.status(200).json({
+    status: 'success',
+    message: 'All in progress challenges deleted',
+  });
+});
+
+const checkInProgressChallenge = async (playerId) => {
+  const existingChallenges = await Challenge.find({
+    playerChallengers: playerId,
+    status: 'in_progress',
+  });
+  return existingChallenges.length > 0;
+};
+
+const sendChallengeInProgressError = (res) => {
+  return res.status(400).json({
+    status: 'fail',
+    message: 'There is already a challenge in progress for this player.',
+  });
+};

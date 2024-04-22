@@ -25,8 +25,8 @@ const challengesSchema = new mongoose.Schema({
   ],
   status: {
     type: String,
-    enum: ['on_hold', 'in_progress', 'completed'],
-    default: 'on_hold',
+    enum: ['in_progress', 'completed', 'aborted'],
+    default: 'in_progress',
   },
   winner: {
     type: mongoose.Schema.ObjectId,

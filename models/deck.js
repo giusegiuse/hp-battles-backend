@@ -16,6 +16,10 @@ const deckSchema = new mongoose.Schema({
       ref: 'Character',
     },
   ],
+  challenge: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Challenge',
+  },
   creationDate: {
     type: Date,
     default: Date.now(),
