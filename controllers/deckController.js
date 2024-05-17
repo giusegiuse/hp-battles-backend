@@ -1,14 +1,46 @@
 const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
 const Deck = require('./../models/deck');
-const characterController = require('../controllers/characterController');
 const Character = require('../models/character');
+const CharacterController = require('./characterController');
+
+exports.getDeckCharacters = catchAsync(async (req, res, next) => {
+  const deck = await Deck.findOne({
+    playerChallenger: req.params.userId,
+  }).sort({
+    creationDate: -1,
+  });
+
+  if (!deck) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Deck not found for this user',
+    });
+  }
+  const characters = await Character.find({
+    _id: { $in: deck.characters },
+  });
+  if (characters.length === 0) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'No characters found for this deck',
+    });
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: characters,
+  });
+});
 
 exports.create = catchAsync(async (req, res, next) => {
   if (!req.body) {
     //todo ERRORE
   }
-  const deck = await Deck.create({ playerChallenger: req.body.userId });
+  await Deck.create({
+    playerChallenger: req.body.userId,
+    challenge: req.body.challengeId,
+  });
 });
 
 exports.addCharacter = catchAsync(async (req, res, next) => {
