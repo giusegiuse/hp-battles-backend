@@ -11,6 +11,7 @@ router.use('/:id/challenges', challengeRouter);
 //add middleware to check captcha validity
 router.post('/signup', authController.signup);
 router.post('/create', userController.createUser);
+router.get('/:id/opponent', userController.getOpponent);
 router.post('/login', authController.login);
 router.get('/logout', authController.logout);
 router.post('/forgotPassword', authController.forgotPassword);

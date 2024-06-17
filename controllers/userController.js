@@ -109,3 +109,20 @@ exports.createUser = (req, res) => {
     message: 'This route is not defined! Please use /signup instead',
   });
 };
+
+exports.getOpponent = async (req, res) => {
+  try {
+    const opponent = await User.findById(req.params.id)
+      .select('id name email photo')
+      .lean();
+    if (!opponent) {
+      return res
+        .status(404)
+        .json({ status: 'error', message: 'Opponent not found' });
+    }
+    res.status(200).json({ status: 'success', data: opponent });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+};

@@ -55,6 +55,24 @@ exports.createOnePlayerChallenge = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getOpponentUserId = catchAsync(async (req, res, next) => {
+  const userId = req.params.id;
+  const challenges = await Challenge.find({
+    playerChallengers: userId,
+    status: 'in_progress',
+  });
+  return challenges.flatMap((challenge) => {
+    return challenge.playerChallengers
+      .filter((challenger) => {
+        return String(challenger._id) !== String(userId);
+      })
+      .map((challenger) => {
+        res.status(200);
+        res.send(challenger._id);
+      });
+  });
+});
+
 exports.deleteAllInProgressChallenges = catchAsync(async (req, res, next) => {
   const userId = req.params.id;
   await Challenge.deleteMany({

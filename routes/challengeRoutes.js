@@ -18,6 +18,9 @@ router
     challengeController.createChallenge,
   );
 
+router
+  .route('/:id/opponent-user-id')
+  .get(challengeController.getOpponentUserId);
 router.route('/one-player').post(challengeController.createOnePlayerChallenge);
 
 router

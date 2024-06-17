@@ -48,7 +48,7 @@ exports.getOne = (Model, populateOptions) =>
     if (req.params.id) query = Model.findById(req.params.id);
     else if (req.body.id) query = Model.findById(req.body.id);
 
-    if (populateOptions) query = query.populate(populateOptions);
+    if (populateOptions.path) query = query.populate(populateOptions);
     const doc = await query;
 
     if (!doc) {

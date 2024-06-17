@@ -2,11 +2,61 @@ const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
 const Deck = require('./../models/deck');
 const Character = require('../models/character');
-const CharacterController = require('./characterController');
+const Challenge = require('../models/challenge');
 
 exports.getDeckCharacters = catchAsync(async (req, res, next) => {
   const deck = await Deck.findOne({
     playerChallenger: req.params.userId,
+  }).sort({
+    creationDate: -1,
+  });
+
+  if (!deck) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Deck not found for this user',
+    });
+  }
+  const characters = await Character.find({
+    _id: { $in: deck.characters },
+  });
+  if (characters.length === 0) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'No characters found for this deck',
+    });
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: characters,
+  });
+});
+
+exports.getOppenentDeckCharacters = catchAsync(async (req, res, next) => {
+  const userId = req.params.userId;
+  const challenges = await Challenge.find({
+    playerChallengers: userId,
+    status: 'in_progress',
+  })
+    .sort({
+      creationDate: -1,
+    })
+    .select('playerChallengers');
+
+  //TODO delete this because i have created getOpponentUserId in challengecontroller
+  const opponentUserIds = challenges.flatMap((challenge) => {
+    return challenge.playerChallengers
+      .filter((challenger) => {
+        return String(challenger._id) !== String(userId);
+      })
+      .map((challenger) => {
+        return challenger._id;
+      });
+  });
+
+  const deck = await Deck.findOne({
+    playerChallenger: opponentUserIds[0],
   }).sort({
     creationDate: -1,
   });
