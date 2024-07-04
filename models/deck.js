@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 
+const deckCharacterSchema = new mongoose.Schema({
+  character: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Character',
+  },
+  current_health: {
+    type: Number,
+    required: [true, 'Character must have a current health value'],
+  },
+  turns_blocked: {
+    type: Number,
+    default: 0,
+  },
+});
+
 const deckSchema = new mongoose.Schema({
   playerChallenger: {
     type: mongoose.Schema.ObjectId,
@@ -10,12 +25,7 @@ const deckSchema = new mongoose.Schema({
     type: Number,
     default: 500,
   },
-  characters: [
-    {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Character',
-    },
-  ],
+  characters: [deckCharacterSchema],
   challenge: {
     type: mongoose.Schema.ObjectId,
     ref: 'Challenge',

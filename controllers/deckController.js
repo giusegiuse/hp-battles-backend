@@ -3,6 +3,7 @@ const factory = require('./handlerFactory');
 const Deck = require('./../models/deck');
 const Character = require('../models/character');
 const Challenge = require('../models/challenge');
+const { getOpponentUserID } = require('./../utils/challengeFunctions');
 
 exports.getDeckCharacters = catchAsync(async (req, res, next) => {
   const deck = await Deck.findOne({
@@ -18,7 +19,7 @@ exports.getDeckCharacters = catchAsync(async (req, res, next) => {
     });
   }
   const characters = await Character.find({
-    _id: { $in: deck.characters },
+    _id: { $in: deck.characters.map((char) => char.character) },
   });
   if (characters.length === 0) {
     return res.status(404).json({
@@ -54,7 +55,6 @@ exports.getOppenentDeckCharacters = catchAsync(async (req, res, next) => {
         return challenger._id;
       });
   });
-
   const deck = await Deck.findOne({
     playerChallenger: opponentUserIds[0],
   }).sort({
@@ -68,7 +68,7 @@ exports.getOppenentDeckCharacters = catchAsync(async (req, res, next) => {
     });
   }
   const characters = await Character.find({
-    _id: { $in: deck.characters },
+    _id: { $in: deck.characters.map((char) => char.character) },
   });
   if (characters.length === 0) {
     return res.status(404).json({
@@ -94,15 +94,23 @@ exports.create = catchAsync(async (req, res, next) => {
 });
 
 exports.addCharacter = catchAsync(async (req, res, next) => {
-  const deck = await Deck.findOne().sort({ creationDate: -1 });
-  const character = await Character.findOne({ _id: req.body.id });
+  const { userId, characterId } = req.body;
+  const deck = await Deck.findOne({ playerChallenger: userId }).sort({
+    creationDate: -1,
+  });
+  const character = await Character.findById(characterId);
   if (!character) {
     return next(new AppError('No character found with that ID', 404));
   }
   if (deck.money < character.cost) {
     return next(new AppError('Not enough money in the deck', 400));
   }
-  deck.characters.push(req.body.id);
+  const newCharacter = {
+    character: character._id,
+    current_health: character.life,
+    turns_blocked: 0,
+  };
+  deck.characters.push(newCharacter);
   deck.money = deck.money - character.cost;
 
   await deck.save();
@@ -125,5 +133,46 @@ exports.removeCharacter = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: deck,
+  });
+});
+
+exports.updateLife = catchAsync(async (req, res, next) => {
+  const { opponentUserId, opponentCharacterId, newLife } = req.body;
+  const deck = await Deck.findOne({ playerChallenger: opponentUserId }).sort({
+    creationDate: -1,
+  });
+  console.log(JSON.stringify(deck));
+  const character = deck.characters.find(
+    (char) => String(char.character) === String(opponentCharacterId),
+  );
+  console.log(character.current_health);
+  console.log(JSON.stringify(character));
+  if (!character) {
+    return next(new AppError('No character found with that ID', 404));
+  }
+  character.current_health = newLife;
+  await deck.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: deck,
+  });
+});
+
+exports.getOpponentCharacterCurrentLife = catchAsync(async (req, res, next) => {
+  const { characterId, id } = req.params;
+  const opponentUserId = await getOpponentUserID(id);
+  const deck = await Deck.findOne({ playerChallenger: opponentUserId }).sort({
+    creationDate: -1,
+  });
+  const character = deck.characters.find(
+    (char) => String(char.character) === String(characterId),
+  );
+  if (!character) {
+    return next(new AppError('No character found with that ID', 404));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: character.current_health,
   });
 });

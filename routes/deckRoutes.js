@@ -13,5 +13,9 @@ router.route('/addCharacter').post(deckController.addCharacter);
 router
   .route('/removeCharacter/:characterId')
   .delete(deckController.removeCharacter);
+router
+  .route('/:id/opponent-current-life/character/:characterId/')
+  .get(deckController.getOpponentCharacterCurrentLife);
+router.route('/character/update-life').post(deckController.updateLife);
 
 module.exports = router;
