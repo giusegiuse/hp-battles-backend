@@ -85,6 +85,27 @@ exports.deleteAllInProgressChallenges = catchAsync(async (req, res, next) => {
     });
 });
 
+exports.setChallengeWinner = catchAsync(async (req, res, next) => {
+    const userId = req.params.id;
+    const challenge = await Challenge.findOne({
+        playerChallengers: userId,
+        status: 'in_progress',
+    });
+    if (!challenge) {
+        return res.status(404).json({
+            status: 'fail',
+            message: 'Challenge not found',
+        });
+    }
+    challenge.winner = userId;
+    challenge.status = 'completed';
+    await challenge.save();
+    res.status(200).json({
+        status: 'success',
+        message: 'Challenge completed',
+    });
+});
+
 const checkInProgressChallenge = async (playerId) => {
     const existingChallenges = await Challenge.findOne({
         playerChallengers: playerId,

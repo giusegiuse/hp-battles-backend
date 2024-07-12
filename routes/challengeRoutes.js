@@ -43,4 +43,8 @@ router
         challengeController.updateChallenge,
     );
 
+router
+    .route('/set-challenge-winner/:id')
+    .patch(challengeController.setChallengeWinner)
+
 module.exports = router;
