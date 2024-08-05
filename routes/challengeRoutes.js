@@ -32,6 +32,10 @@ router
     .delete(challengeController.deleteAllInProgressChallenges);
 
 router
+    .route('/set-challenge-winner/:id')
+    .patch(challengeController.setChallengeWinner)
+
+router
     .route('/:id')
     .get(challengeController.getChallenge)
     .delete(
@@ -43,8 +47,5 @@ router
         challengeController.updateChallenge,
     );
 
-router
-    .route('/set-challenge-winner/:id')
-    .patch(challengeController.setChallengeWinner)
 
 module.exports = router;
